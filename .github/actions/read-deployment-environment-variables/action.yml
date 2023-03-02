@@ -1,0 +1,35 @@
+name: Read deployment environment variables
+description: Reads environment variables from a deployment environment
+inputs:
+  environment:
+    description: "Deployment environment to load variables from"
+    type: environment
+    required: true
+  gh_pat:
+    description:
+      "GitHub PAT for accessing deployment environment variables. Must have
+      'environments' read scope."
+    required: true
+outputs:
+  map:
+    description: "Map"
+    value: "${{ steps.vars.outputs.map }}"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: octokit/request-action@v2.x
+      id: deploy-env-vars-req
+      env:
+        GITHUB_TOKEN: ${{ inputs.gh_pat }}
+      with:
+        route:
+          GET
+          /repositories/{repository_id}/environments/{environment_name}/variables
+        repository_id: ${{ github.repository_id }}
+        environment_name: ${{ inputs.environment }}
+    - shell: bash
+      id: vars
+      run: |
+        echo map=$(echo '${{ steps.deploy-env-vars-req.outputs.data }}' | jq -r '.variables[] | { "\(.name)": "\(.value)" }' | jq -rs add) >> $GITHUB_OUTPUT
+        # echo '${{ steps.deploy-env-vars-req.outputs.data }}' | jq -r '.variables[] | "\(.name)=\(.value)"' | xargs -L 1 $1 >> $GITHUB_OUTPUT

@@ -1,0 +1,44 @@
+name: Main
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment to load variables from"
+        type: environment
+        required: true
+
+jobs:
+  test:
+    name: Name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: ./.github/actions/read-deployment-environment-variables
+        id: deploy-env-vars
+        with:
+          gh_pat: ${{ secrets.GH_PAT }}
+          environment: ${{ inputs.environment }}
+      - name: output
+        shell: bash
+        run: |
+          echo '${{ fromJSON(steps.deploy-env-vars.outputs.map).AWS_REGION }}'
+      # - uses: octokit/request-action@v2.x
+      #   id: deploy-env-variables
+      #   env:
+      #     GITHUB_TOKEN: ${{ inputs.gh_pat }}
+      #   with:
+      #     route:
+      #       GET
+      #       /repositories/{repository_id}/environments/{environment_name}/variables
+      #     repository_id: ${{ github.repository_id }}
+      #     environment_name: ${{ inputs.environment }}
+      # - name: output
+      #   shell: bash
+      #   run: |
+      #     echo '${{ steps.deploy-env-variables.outputs.data }}' | jq -r '.variables[] | "\(.name)=\(.value)"' | xargs -L 1 $1 >> $GITHUB_ENV
+      # - name: test
+      #   shell: bash
+      #   run: |
+      #     echo '${{ env.KEY_1 }}'
+      #     echo '${{ env.KEY_2 }}'
