@@ -32,4 +32,3 @@ runs:
       id: vars
       run: |
         echo map=$(echo '${{ steps.deploy-env-vars-req.outputs.data }}' | jq -r '.variables[] | { "\(.name)": "\(.value)" }' | jq -rs add) >> $GITHUB_OUTPUT
-        # echo '${{ steps.deploy-env-vars-req.outputs.data }}' | jq -r '.variables[] | "\(.name)=\(.value)"' | xargs -L 1 $1 >> $GITHUB_OUTPUT
